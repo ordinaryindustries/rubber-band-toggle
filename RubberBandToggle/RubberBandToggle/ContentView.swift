@@ -12,6 +12,7 @@ struct CustomToggleStyle: ToggleStyle {
     @State private var offset = CGSize.zero
     
     let dragDamping: Double = 0.4
+    let offsetThreshold: CGFloat = 100.0
 
     var onImage: String = "checkmark"
     var offImage: String = "checkmark"
@@ -36,11 +37,19 @@ struct CustomToggleStyle: ToggleStyle {
                             .foregroundColor(.white)
                     }
                     .offset(x: configuration.isOn ? 50 : -50)
-                    .offset(x: offset.width * dragDamping, y: offset.height * dragDamping)
+                    .offset(x: offset.width, y: offset.height)
                     .gesture(
                         DragGesture()
                             .onChanged { gesture in
-                                offset = gesture.translation
+                                if abs(offset.height) > offsetThreshold || abs(offset.width) > offsetThreshold {
+                                    withAnimation(.spring(response: 0.4, dampingFraction: 0.4)) {
+                                        offset.width = gesture.translation.width
+                                        offset.height = gesture.translation.height
+                                    }
+                                } else {
+                                    offset.width = gesture.translation.width * dragDamping
+                                    offset.height = gesture.translation.height * dragDamping
+                                }
                             }
                             .onEnded { _ in
                                 withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
